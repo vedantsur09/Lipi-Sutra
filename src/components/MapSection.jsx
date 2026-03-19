@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const GOOGLE_KEY = "AIzaSyCI_mQ8Tv4nFWWTi6SrPwX8HvqrTU-CvYk";
+const GOOGLE_KEY = import.meta.env.VITE_MAPS_KEY;
 
 const SITES = [
   { name: "Sarkar Wada, Nashik", lat: 20.006, lng: 73.779,

@@ -1,4 +1,4 @@
-const GEMINI_KEY = "AIzaSyDqJ5g1yjKlEjykggYfaNC9p9dJ0L7LOPI";
+const GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY;
 
 export async function analyzeDocument(base64Image) {
   const prompt = `You are an expert in Indian historical scripts and archival documents.

@@ -1,4 +1,4 @@
-const GOOGLE_KEY = "AIzaSyCycvn7VgYU4V3ydmCna_z2U3P4Ll_7QGE";
+const GOOGLE_KEY = import.meta.env.VITE_VISION_KEY;
 
 export async function getConfidenceScores(base64Image) {
   const response = await fetch(
