@@ -218,7 +218,7 @@ Each reference directly validates a specific technical decision in LipiSutra's a
 
 ```bash
 # Clone the repository
-git clone https://github.com/vedantsur09/lipisutra.git
+git clone https://github.com/prachi-satbhai0741/LipiSutra
 
 # Install dependencies
 cd lipisutra
@@ -240,8 +240,8 @@ npm run dev
 
 ## 🔗 Links
 
-- 🌐 **Live Demo:** [lipisutra.vercel.app](https://lipisutra.vercel.app)
-- 💻 **GitHub:** [github.com/vedantsur09/lipisutra](https://github.com/vedantsur09/lipisutra)
+- 🌐 **Live Demo:** [lipi-sutra.vercel.app](https://lipi-sutra.vercel.app/)
+- 💻 **GitHub:** [github.com/prachi-satbhai0741/LipiSutra](https://github.com/prachi-satbhai0741/LipiSutra)
 
 ---
 
