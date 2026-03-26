@@ -59,13 +59,13 @@ These documents are:
 
 ## 💡 The Solution
 
-LipiSutra serves three distinct user types through a **Role-Based Perspective Switcher** — no login required:
+LipiSutra serves three distinct user types through a **Role-Based Perspective Switcher**:
 
 | Role | Access | Purpose |
 |---|---|---|
 | 🌍 **Public / Student** | Full read access, free | Upload documents, receive structured output, TTS audio |
-| 🏛️ **Historian** | Verified expert layer | Convert AI predictions to permanently verified data |
-| 🏢 **Museum / Admin** | Bulk upload portal | Institutional digitization pipeline + analytics dashboard |
+| 🏛️ **Historian** | Verified expert layer | Convert AI predictions to permanently verified data(no login required) |
+| 🏢 **Museum** | Bulk upload portal | Institutional digitization pipeline + analytics dashboard |
 
 ---
 
