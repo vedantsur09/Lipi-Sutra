@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  lipisutra:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: lipisutra_app
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Optional: Dev mode with hot-reload
+  lipisutra_dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: lipisutra_dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - .env
+    profiles:
+      - dev
+    restart: unless-stopped
