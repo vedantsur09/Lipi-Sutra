@@ -132,26 +132,21 @@ SHA-256 Hash Check
 - **Real-time progress indicator** — Shows document pipeline stage during async processing
 - **Deployed on Vercel**
 
-### Backend Pipeline
-- **Python FastAPI** — Async task queuing, SHA-256 hashing, RBAC management
-- **Google ADK** — Orchestrates 3 isolated AI agents
-- **Firebase Firestore** — Document metadata, RLHF correction logs, historian queue
+### Backend & Database
+- **Firebase Firestore** — Document storage, RLHF correction logs
+- **Firebase Auth** — Role-based access control
+- **SHA-256 Deduplication** — Client-side hashing before API calls
 
-### Google Ecosystem (12 Tools)
+### Google Ecosystem (7 Tools)
 
 | Tool | Role in Pipeline |
 |---|---|
 | **Gemini 1.5 Pro** | Core multimodal OCR + contextual gap filling |
 | **Cloud Vision API** | Confidence scoring per word/glyph |
 | **Cloud Translation API** | Multilingual output (100+ languages) |
-| **Bhashini API** | 22 scheduled Indian languages |
 | **Cloud Text-to-Speech** | Audio accessibility for visually impaired users |
 | **Google Maps JavaScript API** | Heritage site pinning from decoded place names |
 | **Firebase Firestore** | Document storage, RLHF correction database |
-| **Google ADK** | Multi-agent orchestration framework |
-| **Vertex AI** | Model fine-tuning pipeline (RLHF long-term) |
-| **Cloud Run** | Bulk processing backend + university API |
-| **BigQuery + Looker Studio** | Museum analytics dashboard |
 | **Firebase Auth** | Role-based access control |
 
 ---
