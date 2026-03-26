@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { 
   getFirestore, collection, addDoc, serverTimestamp, 
-  query, orderBy, limit, getDocs 
+  query, orderBy, limit, getDocs, setDoc, doc, getDoc
 } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -16,15 +16,38 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-export async function saveDocument(data, role) {
+export async function checkExistingHash(hash) {
+  console.log('>>> [CACHE_CHECK] checkExistingHash Initiated for hash:', hash);
   try {
-    return await addDoc(collection(db, "documents"), {
-      ...data,
-      savedByRole: role,
+    const docRef = doc(db, "documents", hash);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      console.log('>>> [CACHE_CHECK] HIT! Found existing document, status:', data.status);
+      if (data.status === 'verified') return data.historian_output;
+      if (data.status === 'pending') return data.ai_output;
+    }
+    console.log('>>> [CACHE_CHECK] MISS! Document does not exist in Firebase.');
+  } catch (err) {
+    console.error(">>> [CACHE_CHECK] Fatal Error:", err.message);
+  }
+  return null;
+}
+
+export async function saveDocument(geminiResult, role, hash) {
+  console.log('>>> [SAVE_DOC] saveDocument Initiated for hash:', hash);
+  try {
+    await setDoc(doc(db, "documents", hash), {
+      view_count: 1,
+      status: 'pending',
+      priority_score: 80,
+      ai_output: geminiResult,
+      historian_output: null,
       timestamp: serverTimestamp()
     });
+    console.log('>>> [SAVE_DOC] SUCCESS: Wrote to Firestore successfully.');
   } catch (err) {
-    console.log("Firestore save failed:", err.message);
+    console.error(">>> [SAVE_DOC ERROR] Firestore Rejected the Save! Error Details:", err.code, err.message);
   }
 }
 

@@ -1,14 +1,23 @@
-const GOOGLE_KEY = import.meta.env.VITE_VISION_KEY;
+const GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY;
 
 export async function translateText(text, targetLang) {
-  const response = await fetch(
-    `https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ q: text, source: "mr", target: targetLang })
-    }
-  );
-  const data = await response.json();
-  return data.data.translations[0].translatedText;
+  try {
+    const prompt = `Translate the following text into the ISO-639-1 language code '${targetLang}'. Return strictly ONLY the translated text, nothing else. Text to translate:\n\n${text}`;
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      }
+    );
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.candidates[0].content.parts[0].text;
+  } catch (err) {
+    console.error("Translation API Error:", err);
+    return "Error: Could not translate the text. " + err.message;
+  }
 }
