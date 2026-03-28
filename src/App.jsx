@@ -52,7 +52,7 @@ export default function App() {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen relative flex flex-col font-sans"
       style={{
         backgroundColor: theme.bg,
@@ -68,12 +68,12 @@ export default function App() {
       }}
     >
       <header className="absolute top-4 right-4 z-[100]">
-        <button 
+        <button
           onClick={toggleTheme}
           className="px-4 py-2 rounded-full font-semibold shadow-md flex items-center gap-2"
-          style={{ 
-            backgroundColor: themeMode === 'LIGHT' ? theme.accent : theme.surface, 
-            color: themeMode === 'LIGHT' ? '#fff8f0' : theme.text, 
+          style={{
+            backgroundColor: themeMode === 'LIGHT' ? theme.accent : theme.surface,
+            color: themeMode === 'LIGHT' ? '#fff8f0' : theme.text,
             border: `1.5px solid ${theme.border}`,
             transition: "all 0.3s"
           }}
@@ -84,11 +84,11 @@ export default function App() {
 
       <Navbar currentView={view} onViewChange={setView} currentPage={page} onPageChange={setPage} theme={theme} />
       <main className="flex-1 overflow-x-hidden relative z-10 w-full animate-[fadeIn_0.5s_ease-out]">
-            <>
-               {view === "public" && <PublicView theme={theme} />}
-               {view === "historian" && <HistorianView theme={theme} />}
-               {view === "museum" && <MuseumView theme={theme} />}
-            </>
+        <>
+          {view === "public" && <PublicView theme={theme} />}
+          {view === "historian" && <HistorianView theme={theme} />}
+          {view === "museum" && <MuseumView theme={theme} />}
+        </>
       </main>
     </div>
   );

@@ -1,8 +1,9 @@
 import { initializeApp } from "firebase/app";
-import { 
-  getFirestore, collection, addDoc, serverTimestamp, 
+import {
+  getFirestore, collection, addDoc, serverTimestamp,
   query, orderBy, limit, getDocs, setDoc, doc, getDoc, updateDoc, increment
 } from "firebase/firestore";
+import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,6 +16,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+export const storage = getStorage(app);
 
 export async function checkExistingHash(hash) {
   console.log('>>> [CACHE_CHECK] checkExistingHash Initiated for hash:', hash);
@@ -24,8 +26,22 @@ export async function checkExistingHash(hash) {
     if (docSnap.exists()) {
       const data = docSnap.data();
       console.log('>>> [CACHE_CHECK] HIT! Found existing document, status:', data.status);
-      if (data.status === 'verified') return data.historian_output;
-      if (data.status === 'pending') return data.ai_output;
+      // Return a consistent flat shape from top-level fields (always up-to-date,
+      // whether pending or verified with historian corrections)
+      return {
+        script: data.script,
+        era: data.era,
+        overallAccuracy: data.overallAccuracy,
+        transcript: data.transcript,
+        summary: data.summary,
+        modernMarathi: data.modernMarathi,
+        locations: data.locations || [],
+        aiPredictions: data.aiPredictions || [],
+        reconstructionNeeded: data.reconstructionNeeded || [],
+        _status: data.status,
+        _historianEdits: data.historianEdits || null,
+        _imageUrl: data.imageUrl || null,
+      };
     }
     console.log('>>> [CACHE_CHECK] MISS! Document does not exist in Firebase.');
   } catch (err) {
@@ -34,16 +50,40 @@ export async function checkExistingHash(hash) {
   return null;
 }
 
-export async function saveDocument(geminiResult, role, hash) {
+export async function saveDocument(geminiResult, role, hash, base64Image) {
   console.log('>>> [SAVE_DOC] saveDocument Initiated for hash:', hash);
   try {
+    // Upload compressed Base64 image to Firebase Storage
+    let imageUrl = null;
+    if (base64Image) {
+      try {
+        const storageRef = ref(storage, `artifacts/${hash}.jpg`);
+        await uploadString(storageRef, base64Image, 'base64');
+        imageUrl = await getDownloadURL(storageRef);
+        console.log("Storage upload success:", imageUrl);
+      } catch (storageErr) {
+        console.warn('>>> [SAVE_DOC] Storage upload failed, proceeding without image:', storageErr.message);
+        imageUrl = null;
+      }
+    }
+
     await setDoc(doc(db, "documents", hash), {
       view_count: 1,
       status: 'pending',
       priority_score: 80,
       ai_output: geminiResult,
       historian_output: null,
-      timestamp: serverTimestamp()
+      timestamp: serverTimestamp(),
+      imageUrl: imageUrl,
+      overallAccuracy: geminiResult.overallAccuracy || null,
+      script: geminiResult.script || null,
+      era: geminiResult.era || null,
+      transcript: geminiResult.transcript || "",
+      summary: geminiResult.summary || "",
+      modernMarathi: geminiResult.modernMarathi || "",
+      locations: geminiResult.locations || [],
+      aiPredictions: geminiResult.aiPredictions || [],
+      reconstructionNeeded: geminiResult.reconstructionNeeded || []
     });
     console.log('>>> [SAVE_DOC] SUCCESS: Wrote to Firestore successfully.');
   } catch (err) {

@@ -17,21 +17,36 @@ async function callEngine(base64Image, prompt, temperature) {
           temperature: temperature,
           topK: 32,
           topP: 0.95,
-          maxOutputTokens: 8192,
-          responseMimeType: "application/json"
+          maxOutputTokens: 65536
         }
       })
     }
   );
   
   const data = await response.json();
-  if (!data.candidates) {
+  if (!data.candidates || data.candidates.length === 0) {
     console.error("Gemini API error:", JSON.stringify(data));
     throw new Error(data.error?.message || "Gemini API returned no result");
   }
+
+  // Detect truncation — if the model ran out of tokens, finishReason will be MAX_TOKENS
+  const finishReason = data.candidates[0].finishReason;
+  if (finishReason === "MAX_TOKENS") {
+    console.error(">>> [ENGINE] FATAL: Output was truncated (MAX_TOKENS). The response is incomplete.");
+    throw new Error("Analysis output was too large and got truncated. Please try a smaller/clearer image.");
+  }
   
   const raw = data.candidates[0].content.parts[0].text;
-  return JSON.parse(raw.trim());
+  // Strip markdown code fences if the model wraps the JSON in ```json ... ```
+  const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  
+  try {
+    return JSON.parse(cleaned);
+  } catch (parseErr) {
+    console.error(">>> [ENGINE] JSON Parse Failed. Raw output (first 500 chars):", cleaned.substring(0, 500));
+    console.error(">>> [ENGINE] Raw output (last 200 chars):", cleaned.substring(cleaned.length - 200));
+    throw new Error("AI returned malformed JSON. Please retry the analysis.");
+  }
 }
 
 export async function analyzeDocument(base64Image) {

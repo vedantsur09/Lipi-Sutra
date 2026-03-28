@@ -110,7 +110,17 @@ export default function HistorianView() {
       const editedText = editValues.transcript || "";
       const diffTranscript = buildDiffTranscript(originalClean, editedText);
 
+      // Build the top-level field overrides from historian edits
+      const topLevelUpdates = {};
+      if (changedFields.summary !== undefined) topLevelUpdates.summary = changedFields.summary;
+      if (changedFields.script !== undefined) topLevelUpdates.script = changedFields.script;
+      if (changedFields.era !== undefined) topLevelUpdates.era = changedFields.era;
+      if (changedFields.modernMarathi !== undefined) topLevelUpdates.modernMarathi = changedFields.modernMarathi;
+      if (changedFields.locations !== undefined) topLevelUpdates.locations = changedFields.locations;
+      if (changedFields.confidenceScore !== undefined) topLevelUpdates.overallAccuracy = changedFields.confidenceScore + "%";
+
       batch.update(docRef, {
+        ...topLevelUpdates,
         historianEdits: changedFields,
         highlightedFields: ObjectKeys,
         transcript: diffTranscript,
@@ -215,7 +225,13 @@ export default function HistorianView() {
               className="bg-museum-800/40 p-5 rounded-3xl border border-white/5 shadow-xl hover:border-gold-500/50 transition-all cursor-pointer backdrop-blur-xl"
               onClick={() => handleOpenDoc(docItem)}
             >
-              <img src={docItem.imageBase64?.startsWith('/') ? docItem.imageBase64 : `data:image/jpeg;base64,${docItem.imageBase64}`} alt="Thumbnail" className="w-full h-48 object-cover rounded-2xl mb-4 bg-black/50" />
+              {docItem.imageUrl ? (
+                <img src={docItem.imageUrl} alt="Thumbnail" className="w-full h-48 object-cover rounded-2xl mb-4 bg-black/50" />
+              ) : (
+                <div className="w-full h-48 rounded-2xl bg-museum-900/60 border border-white/10 flex items-center justify-center mb-4">
+                  <span className="text-slate-500 text-xs tracking-widest uppercase">No Image Available</span>
+                </div>
+              )}
               <div className="flex justify-between items-start mb-4">
                 <div className="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-black tracking-widest uppercase px-3 py-1 rounded-full">
                   Pending Review
@@ -240,7 +256,13 @@ export default function HistorianView() {
             </button>
             <div className="bg-museum-900/40 p-5 rounded-2xl border border-white/5 shadow-2xl backdrop-blur-xl">
               <div className="text-[10px] font-black tracking-[0.3em] text-slate-500 uppercase mb-4 pl-1">Document Specimen</div>
-              <img src={selectedDoc.imageBase64?.startsWith('/') ? selectedDoc.imageBase64 : `data:image/jpeg;base64,${selectedDoc.imageBase64}`} alt="Artifact" className="w-full h-auto rounded-xl object-contain max-h-[600px] shadow-inner bg-black/50" />
+              {selectedDoc.imageUrl ? (
+                <img src={selectedDoc.imageUrl} alt="Artifact" className="w-full h-auto rounded-xl object-contain max-h-[600px] shadow-inner bg-black/50" />
+              ) : (
+                <div className="w-full h-48 rounded-2xl bg-museum-900/60 border border-white/10 flex items-center justify-center">
+                  <span className="text-slate-500 text-xs tracking-widest uppercase">No Image Available</span>
+                </div>
+              )}
               {selectedDoc.isLocked && (
                 <div className="mt-6 bg-purple-500/10 border border-purple-500/30 text-purple-400 p-4 rounded-2xl text-center font-black tracking-widest text-sm">
                   This document has already been reviewed.

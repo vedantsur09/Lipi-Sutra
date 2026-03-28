@@ -44,8 +44,9 @@ export default function MuseumView({ theme }) {
       allDocs.forEach(data => {
         if (data.status === "verified") digitized++;
         else pending++;
-        if (data.ai_output && data.ai_output.confidence) {
-          confSum += data.ai_output.confidence;
+        const acc = parseInt(String(data.overallAccuracy || "0").replace("%", ""), 10);
+        if (acc > 0) {
+          confSum += acc;
           confCount++;
         }
       });
@@ -54,7 +55,7 @@ export default function MuseumView({ theme }) {
         totalDocs: allDocs.length,
         digitizedCount: digitized,
         pendingCount: pending,
-        avgConfidence: confCount > 0 ? Math.round((confSum / confCount) * 100) : 0,
+        avgConfidence: confCount > 0 ? Math.round(confSum / confCount) : 0,
       });
 
       setPulseTotal(true);
@@ -114,7 +115,7 @@ export default function MuseumView({ theme }) {
                 {recentFive.map((d, i) => (
                   <tr key={i} className="transition-colors" style={{ backgroundColor: theme.surface }}>
                     <td className="px-6 py-4 font-mono text-xs" style={{ color: theme.text }}>{d.name || d.id.slice(0, 20) + "..."}</td>
-                    <td className="px-6 py-4" style={{ color: theme.subtext }}>{d.ai_output?.script || "—"}</td>
+                    <td className="px-6 py-4" style={{ color: theme.subtext }}>{d.script || "—"}</td>
                     <td className="px-6 py-4">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${d.status === "verified" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
                           "bg-amber-500/10 text-amber-400 border-amber-500/20"

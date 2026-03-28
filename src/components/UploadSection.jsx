@@ -81,7 +81,7 @@ export default function UploadSection({ image, setImage, base64, setBase64, load
       setProgress(100);
       setLoading(false);
       // Increment search popularity counter
-      updateDoc(doc(db, "documents", hash), { searchCount: increment(1) }).catch(e => console.warn("searchCount increment failed", e));
+      updateDoc(doc(db, "documents", hash), { searchCount: increment(1), view_count: increment(1) }).catch(e => console.warn("searchCount increment failed", e));
       return;
     }
 
@@ -91,7 +91,7 @@ export default function UploadSection({ image, setImage, base64, setBase64, load
       onResult(geminiResult);
       setProgress(100);
       setLoading(false);
-      saveDocument(geminiResult, "public", hash).catch(e => console.warn("Firebase intercept failed", e));
+      saveDocument(geminiResult, "public", hash, base64).catch(e => console.warn("Firebase intercept failed", e));
     } catch (err) {
       alert("Error analyzing document: " + err.message);
       setProgress(100);
