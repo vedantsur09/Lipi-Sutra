@@ -1,10 +1,26 @@
 import { useState } from "react";
 import { translateText } from "../services/translate";
-import { speakText } from "../services/tts";
+import { speakText, stopSpeaking } from "../services/tts";
 import MapSection from "./MapSection";
 import UploadSection from "./UploadSection";
 
-const langCodes = { hi: "hi-IN", gu: "gu-IN", te: "te-IN", en: "en-US" };
+const langCodes = {
+  en: "en-US",
+  hi: "hi-IN",
+  gu: "gu-IN",
+  te: "te-IN",
+  ta: "ta-IN",
+  bn: "bn-IN",
+  mr: "mr-IN",
+  kn: "kn-IN",
+  ml: "ml-IN",
+  pa: "pa-IN",
+  ur: "ur-PK",
+  ar: "ar-SA",
+  zh: "zh-CN",
+  ja: "ja-JP",
+  fr: "fr-FR",
+};
 
 export default function PublicView({ theme }) {
   const [image, setImage] = useState(null);
@@ -16,6 +32,7 @@ export default function PublicView({ theme }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("summary"); // "summary", "transcript", "translation", "origin"
   const [isTranslating, setIsTranslating] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   function handleFileDrop(e) {
     e.preventDefault();
@@ -39,22 +56,22 @@ export default function PublicView({ theme }) {
 
   const renderTranscription = (transcript) => {
     if (!transcript) return <span className="opacity-50">No transcript extracted.</span>;
-    
+
     // Split by <predict>, <reconstruct>, or <verified> tags
     const parts = transcript.split(/(<predict[^>]*>.*?<\/predict>|<reconstruct>.*?<\/reconstruct>|<verified>.*?<\/verified>)/g);
-    
+
     return parts.map((part, i) => {
       if (!part) return null;
-      
+
       const predictMatch = part.match(/<predict\s+confidence="([^"]+)">([^<]+)<\/predict>/);
       if (predictMatch) {
         const confidence = parseFloat(predictMatch[1]);
         const word = predictMatch[2];
         const opacity = Math.min(Math.max(confidence, 0.2), 0.9);
-        
+
         return (
           <span key={i} className="text-gold-500 relative group cursor-help transition-all"
-                style={{ display: 'inline', padding: '1px 4px', borderRadius: '3px', fontSize: 'inherit', backgroundColor: `rgba(212, 175, 55, ${opacity * 0.3})`, boxShadow: `0 0 ${opacity * 15}px rgba(212,175,55, ${opacity * 0.5})` }}>
+            style={{ display: 'inline', padding: '1px 4px', borderRadius: '3px', fontSize: 'inherit', backgroundColor: `rgba(212, 175, 55, ${opacity * 0.3})`, boxShadow: `0 0 ${opacity * 15}px rgba(212,175,55, ${opacity * 0.5})` }}>
             {word}
             <span className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-amber-900 border border-gold-500 text-gold-500 text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded shadow-xl whitespace-nowrap z-50 pointer-events-none">
               AI Prediction ({Math.round(confidence * 100)}%)
@@ -62,13 +79,13 @@ export default function PublicView({ theme }) {
           </span>
         );
       }
-      
+
       const reconstructMatch = part.match(/<reconstruct>([^<]+)<\/reconstruct>/);
       if (reconstructMatch) {
         const word = reconstructMatch[1];
         return (
           <span key={i} className="relative group cursor-help transition-all"
-                style={{ background: "rgba(220,38,38,0.15)", color: "#FCA5A5", padding: "2px 5px", borderRadius: "4px", margin: "0 2px" }}>
+            style={{ background: "rgba(220,38,38,0.15)", color: "#FCA5A5", padding: "2px 5px", borderRadius: "4px", margin: "0 2px" }}>
             {word}
             <span className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-900 border border-red-500 text-white text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded shadow-xl whitespace-nowrap z-50 pointer-events-none">
               Reconstruction
@@ -76,7 +93,7 @@ export default function PublicView({ theme }) {
           </span>
         );
       }
-      
+
       const verifiedMatch = part.match(/<verified>([^<]+)<\/verified>/);
       if (verifiedMatch) {
         const word = verifiedMatch[1];
@@ -86,7 +103,7 @@ export default function PublicView({ theme }) {
           </span>
         );
       }
-      
+
       return <span key={i} style={{ whiteSpace: 'pre-wrap' }}>{part}</span>;
     });
   };
@@ -194,8 +211,8 @@ export default function PublicView({ theme }) {
                           onClick={() => setActiveTab(tab.id)}
                           className="pb-3 shrink-0 text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-300 relative top-[2px]"
                           style={{
-                             color: activeTab === tab.id ? theme.accent : theme.subtext,
-                             borderBottom: activeTab === tab.id ? `2.5px solid ${theme.accent}` : '2.5px solid transparent'
+                            color: activeTab === tab.id ? theme.accent : theme.subtext,
+                            borderBottom: activeTab === tab.id ? `2.5px solid ${theme.accent}` : '2.5px solid transparent'
                           }}
                         >
                           {tab.label}
@@ -205,7 +222,7 @@ export default function PublicView({ theme }) {
 
                     {/* Tab Panes */}
                     <div className="backdrop-blur-xl p-8 md:p-12 rounded-2xl flex-1 min-h-[450px]"
-                         style={{ backgroundColor: theme.headerBg, border: `1.5px solid ${theme.border}`, boxShadow: theme.cardShadow }}>
+                      style={{ backgroundColor: theme.headerBg, border: `1.5px solid ${theme.border}`, boxShadow: theme.cardShadow }}>
                       {activeTab === 'summary' && (
                         <div className="animate-[fadeIn_0.4s_ease-out]">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-12 pb-8 border-b border-white/5">
@@ -234,6 +251,17 @@ export default function PublicView({ theme }) {
                               <option value="hi">हिन्दी (Hindi)</option>
                               <option value="gu">ગુજરાતી (Gujarati)</option>
                               <option value="te">తెలుగు (Telugu)</option>
+                              <option value="ta">தமிழ் (Tamil)</option>
+                              <option value="bn">বাংলা (Bengali)</option>
+                              <option value="mr">मराठी (Marathi)</option>
+                              <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                              <option value="ml">മലയാളം (Malayalam)</option>
+                              <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                              <option value="ur">اردو (Urdu)</option>
+                              <option value="ar">العربية (Arabic)</option>
+                              <option value="zh">中文 (Chinese)</option>
+                              <option value="ja">日本語 (Japanese)</option>
+                              <option value="fr">Français (French)</option>
                             </select>
                             <button
                               onClick={async () => {
@@ -254,20 +282,35 @@ export default function PublicView({ theme }) {
                             >
                               {isTranslating ? "Processing..." : "Decrypt Metadata"}
                             </button>
+                            <button
+                              onClick={() => {
+                                if (isSpeaking) {
+                                  stopSpeaking();
+                                  setIsSpeaking(false);
+                                } else {
+                                  const textToSpeak = translation || result.modernMarathi || result.transcript || '';
+                                  const cleanText = textToSpeak.replace(/<predict[^>]*>/g, '').replace(/<\/predict>/g, '').replace(/<reconstruct>/g, '').replace(/<\/reconstruct>/g, '');
+                                  speakText(cleanText, langCodes[lang]);
+                                  setIsSpeaking(true);
+                                  // Auto-reset when speech ends
+                                  const checkInterval = setInterval(() => {
+                                    if (!window.speechSynthesis.speaking) {
+                                      setIsSpeaking(false);
+                                      clearInterval(checkInterval);
+                                    }
+                                  }, 300);
+                                }
+                              }}
+                              className="px-8 py-4 rounded-xl transition-all font-black text-[10px] tracking-[0.2em] uppercase hover:-translate-y-1 flex items-center gap-2"
+                              style={{ backgroundColor: isSpeaking ? '#dc2626' : theme.accentGlow, color: theme.buttonText, boxShadow: theme.cardShadow }}
+                            >
+                              {isSpeaking ? "🔇 Mute" : "🔊 Play Audio"}
+                            </button>
                           </div>
 
                           {translation && (
                             <div className="p-8 rounded-xl border-t-[3px] shadow-inner" style={{ backgroundColor: theme.surface, borderColor: theme.accent }}>
-                              <p className="text-lg leading-relaxed mb-10 font-light" style={{ color: theme.text }}>{translation}</p>
-                              <button onClick={() => {
-                                  const cleanText = (translation || '').replace(/<predict[^>]*>/g, '').replace(/<\/predict>/g, '').replace(/<reconstruct>/g, '').replace(/<\/reconstruct>/g, '');
-                                  speakText(cleanText, langCodes[lang]);
-                                }} 
-                                      className="px-10 py-4 rounded-xl text-[10px] font-black tracking-[0.2em] uppercase transition-all hover:-translate-y-1 flex items-center justify-center gap-3 w-full sm:w-auto"
-                                      style={{ backgroundColor: theme.accentGlow, color: theme.buttonText, boxShadow: theme.cardShadow }}
-                              >
-                                🔊 Execute Audio Reproduction
-                              </button>
+                              <p className="text-lg leading-relaxed font-light" style={{ color: theme.text }}>{translation}</p>
                             </div>
                           )}
                         </div>
@@ -296,7 +339,7 @@ export default function PublicView({ theme }) {
                     )}
                   </div>
                   <div className="backdrop-blur-2xl p-10 md:p-16 rounded-3xl"
-                       style={{ backgroundColor: theme.headerBg, border: `1.5px solid ${theme.border}`, boxShadow: theme.cardShadow }}>
+                    style={{ backgroundColor: theme.headerBg, border: `1.5px solid ${theme.border}`, boxShadow: theme.cardShadow }}>
                     <div className="text-lg md:text-xl font-serif leading-[2.4] drop-shadow-sm" style={{ color: theme.text, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                       {renderTranscription(result.transcript)}
                     </div>

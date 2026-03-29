@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
+import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import PublicView from "./components/PublicView";
 import HistorianView from "./components/HistorianView";
-import MuseumView from "./components/MuseumView";
-
+import GlobalArchive from "./components/GlobalArchive";
+import Login from "./components/Login";
 import backImg from "./assets/back.jpg";
-
+import './App.css';
 const DARK = {
   name: "DARK",
   bg: "#1a0f00",
@@ -32,25 +33,17 @@ const LIGHT = {
   cardShadow: "0 2px 12px rgba(107,45,14,0.15)",
   buttonText: "#fff8f0"
 };
-
 export default function App() {
-  const [view, setView] = useState("public"); // "public", "historian", "museum"
-  const [page, setPage] = useState("home"); // "home", "archives"
-
   const [themeMode, setThemeMode] = useState(() => {
     return localStorage.getItem("themePreference") || "DARK";
   });
-
   useEffect(() => {
     localStorage.setItem("themePreference", themeMode);
   }, [themeMode]);
-
   const theme = themeMode === "DARK" ? DARK : LIGHT;
-
   const toggleTheme = () => {
     setThemeMode((prev) => (prev === "DARK" ? "LIGHT" : "DARK"));
   };
-
   return (
     <div
       className="min-h-screen relative flex flex-col font-sans"
@@ -67,28 +60,15 @@ export default function App() {
         transition: "background 0.3s, color 0.3s"
       }}
     >
-      <header className="absolute top-4 right-4 z-[100]">
-        <button
-          onClick={toggleTheme}
-          className="px-4 py-2 rounded-full font-semibold shadow-md flex items-center gap-2"
-          style={{
-            backgroundColor: themeMode === 'LIGHT' ? theme.accent : theme.surface,
-            color: themeMode === 'LIGHT' ? '#fff8f0' : theme.text,
-            border: `1.5px solid ${theme.border}`,
-            transition: "all 0.3s"
-          }}
-        >
-          {themeMode === "DARK" ? "🌙 Dark" : "☀️ Light"}
-        </button>
-      </header>
-
-      <Navbar currentView={view} onViewChange={setView} currentPage={page} onPageChange={setPage} theme={theme} />
+      {/* Premium Navigation Bar */}
+      <Navbar theme={theme} themeMode={themeMode} toggleTheme={toggleTheme} />
       <main className="flex-1 overflow-x-hidden relative z-10 w-full animate-[fadeIn_0.5s_ease-out]">
-        <>
-          {view === "public" && <PublicView theme={theme} />}
-          {view === "historian" && <HistorianView theme={theme} />}
-          {view === "museum" && <MuseumView theme={theme} />}
-        </>
+        <Routes>
+          <Route path="/" element={<PublicView theme={theme} />} />
+          <Route path="/archives" element={<GlobalArchive theme={theme} />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/historian" element={<HistorianView theme={theme} />} />
+        </Routes>
       </main>
     </div>
   );

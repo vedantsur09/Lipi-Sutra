@@ -1,69 +1,162 @@
-import logo from "../assets/lslogo.png";
-
-export default function Navbar({ currentView, onViewChange, currentPage, onPageChange, theme }) {
-  const roles = [
-    { id: "public", label: "Public / Student" },
-    { id: "historian", label: "Historian" },
-    { id: "museum", label: "Museum Admin" }
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import "./Navbar.css";
+export default function Navbar({ theme, themeMode, toggleTheme }) {
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const isActive = (path) => location.pathname === path;
+  const navLinks = [
+    { path: "/", label: "AI Scanner" },
+    { path: "/archives", label: "Global Archives" },
   ];
-
+  // Determine which role pill is "active" based on route
+  const isPublicRoute = location.pathname === "/" || location.pathname === "/archives";
+  const isHistorianRoute = location.pathname === "/historian" || location.pathname === "/login";
   return (
-    <nav className="sticky top-0 z-50 backdrop-blur-lg border-b shadow-2xl transition-colors" style={{ backgroundColor: theme.headerBg, borderColor: theme.border }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row justify-between items-center py-3 gap-4">
-
-          {/* Logo & Main Nav container */}
-          <div className="flex items-center gap-12">
-            <div className="flex items-center cursor-pointer group" onClick={() => onPageChange("home")}>
-              <div className="relative">
-                <img
-                  src={logo}
-                  alt="LipiSutra"
-                  className="h-40 w-auto object-contain relative z-10 transition-transform duration-500 group-hover:scale-105"
-                  style={{ filter: theme.name === 'LIGHT' ? 'brightness(0.1) sepia(0.8) hue-rotate(-20deg) saturate(3)' : 'none', mixBlendMode: theme.name === 'LIGHT' ? 'normal' : 'screen' }}
-                />
-              </div>
-            </div>
-
-            {/* Page Navigation Links */}
-            <div className="hidden lg:flex items-center gap-6 border-l pl-8" style={{ borderColor: theme.border }}>
-              <button
-                onClick={() => onPageChange("home")}
-                style={currentPage === 'home' ? { color: theme.accent, borderBottom: `2.5px solid ${theme.accent}` } : { color: theme.subtext }}
-                className={`text-sm font-semibold tracking-widest uppercase transition-colors ${currentPage === 'home' ? 'py-1' : 'hover:opacity-80'}`}
-              >
-                AI Scanner
-              </button>
-
-            </div>
-          </div>
-
-          <div className="flex items-center rounded-full border p-1 shadow-inner transition-colors" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
-            <span className="text-xs uppercase tracking-widest font-semibold px-4 hidden md:block" style={{ color: theme.subtext }}>Role</span>
-            <div className="flex">
-              {roles.map(r => (
-                <button
-                  key={r.id}
-                  onClick={() => onViewChange(r.id)}
-                  style={currentView === r.id
-                    ? { 
-                        backgroundColor: theme.name === 'LIGHT' ? theme.accent : 'transparent', 
-                        color: theme.name === 'LIGHT' ? '#fff8f0' : theme.accent, 
-                        borderColor: theme.accent,
-                        boxShadow: theme.name === 'LIGHT' ? 'none' : '0 0 15px rgba(212,175,55,0.15)'
-                      }
-                    : { color: theme.subtext }
-                  }
-                  className={`px-5 py-2 text-xs font-semibold tracking-wide rounded-full transition-all duration-300 border ${currentView === r.id ? '' : 'border-transparent hover:opacity-80'}`}
-                >
-                  {r.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-        </div>
+    <nav
+      className="navbar"
+      style={{
+        backgroundColor: theme.headerBg,
+        borderBottomColor: `${theme.accent}1A`,
+      }}
+    >
+      {/* ── Logo ─────────────────────────────── */}
+      <Link to="/" className="navbar__logo" onClick={() => setMobileOpen(false)}>
+        <span className="navbar__logo-mark" style={{ color: theme.accent }}>
+          LS
+        </span>
+        <span className="navbar__logo-divider" style={{ backgroundColor: theme.accent }} />
+        <span className="navbar__logo-text" style={{ color: theme.text }}>
+          LIPISUTRA
+        </span>
+      </Link>
+      {/* ── Nav Links (Desktop) ──────────────── */}
+      <div className="navbar__nav">
+        {navLinks.map((link) => (
+          <Link
+            key={link.path}
+            to={link.path}
+            className={`navbar__link ${isActive(link.path) ? "navbar__link--active" : ""}`}
+            style={{
+              color: isActive(link.path) ? theme.accent : theme.text,
+            }}
+          >
+            {link.label}
+            <span
+              className="navbar__link-underline"
+              style={{
+                position: "absolute",
+                bottom: "-2px",
+                left: 0,
+                width: isActive(link.path) ? "100%" : undefined,
+                height: "2px",
+                backgroundColor: theme.accent,
+              }}
+            />
+          </Link>
+        ))}
       </div>
+      {/* ── Right: Role Pills + Theme Toggle ─── */}
+      <div className="navbar__right">
+        {/* Role Label */}
+        <span className="navbar__roles-label" style={{ color: theme.subtext }}>
+          Role
+        </span>
+        {/* Role Switcher */}
+        <div
+          className="navbar__roles"
+          style={{
+            borderColor: `${theme.accent}30`,
+            backgroundColor: `${theme.surface}40`,
+          }}
+        >
+          <Link
+            to="/"
+            className={`navbar__role-pill ${isPublicRoute ? "navbar__role-pill--active" : ""}`}
+            style={{
+              color: isPublicRoute ? theme.accent : theme.subtext,
+              borderColor: isPublicRoute ? theme.accent : "transparent",
+              backgroundColor: isPublicRoute ? `${theme.accent}10` : "transparent",
+            }}
+          >
+            Public / Student
+          </Link>
+          <Link
+            to="/login"
+            className={`navbar__role-pill ${isHistorianRoute ? "navbar__role-pill--active" : ""}`}
+            style={{
+              color: isHistorianRoute ? theme.accent : theme.subtext,
+              borderColor: isHistorianRoute ? theme.accent : "transparent",
+              backgroundColor: isHistorianRoute ? `${theme.accent}10` : "transparent",
+            }}
+          >
+            Historian
+          </Link>
+        </div>
+        {/* Theme Toggle */}
+        <button
+          className="navbar__theme-toggle"
+          onClick={toggleTheme}
+          style={{
+            color: theme.accent,
+            borderColor: `${theme.accent}30`,
+          }}
+          aria-label="Toggle theme"
+        >
+          {themeMode === "DARK" ? "🌙" : "☀️"}
+        </button>
+        {/* Hamburger (mobile) */}
+        <button
+          className="navbar__hamburger"
+          onClick={() => setMobileOpen((prev) => !prev)}
+          aria-label="Menu"
+        >
+          <span style={{ backgroundColor: theme.accent }} />
+          <span style={{ backgroundColor: theme.accent }} />
+          <span style={{ backgroundColor: theme.accent }} />
+        </button>
+      </div>
+      {/* ── Mobile Menu ──────────────────────── */}
+      {mobileOpen && (
+        <div
+          className="navbar__mobile-menu"
+          style={{ backgroundColor: theme.headerBg }}
+        >
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`navbar__link ${isActive(link.path) ? "navbar__link--active" : ""}`}
+              style={{ color: isActive(link.path) ? theme.accent : theme.text }}
+              onClick={() => setMobileOpen(false)}
+            >
+              {link.label}
+            </Link>
+          ))}
+          <Link
+            to="/"
+            className={`navbar__role-pill ${isPublicRoute ? "navbar__role-pill--active" : ""}`}
+            style={{
+              color: isPublicRoute ? theme.accent : theme.subtext,
+              borderColor: isPublicRoute ? theme.accent : `${theme.accent}30`,
+            }}
+            onClick={() => setMobileOpen(false)}
+          >
+            Public / Student
+          </Link>
+          <Link
+            to="/login"
+            className={`navbar__role-pill ${isHistorianRoute ? "navbar__role-pill--active" : ""}`}
+            style={{
+              color: isHistorianRoute ? theme.accent : theme.subtext,
+              borderColor: isHistorianRoute ? theme.accent : `${theme.accent}30`,
+            }}
+            onClick={() => setMobileOpen(false)}
+          >
+            Historian
+          </Link>
+        </div>
+      )}
     </nav>
   );
 }

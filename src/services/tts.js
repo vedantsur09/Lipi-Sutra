@@ -15,20 +15,21 @@ export function speakText(text, langCode = "hi-IN") {
   window.speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(cleanText);
-  utterance.lang = "hi-IN";
+  utterance.lang = langCode;
   utterance.volume = 1;
   utterance.rate = 0.9;
   utterance.pitch = 1;
 
   function assignVoiceAndSpeak() {
     const voices = window.speechSynthesis.getVoices();
-    const indicVoice = voices.find(v =>
-      v.name.includes("Google हिन्दी") ||
-      v.lang.includes("hi") ||
-      v.lang.includes("mr")
+    // Try to find a voice matching the requested language code
+    const langPrefix = langCode.split("-")[0];
+    const matchingVoice = voices.find(v =>
+      v.lang === langCode ||
+      v.lang.startsWith(langPrefix)
     );
-    if (indicVoice) {
-      utterance.voice = indicVoice;
+    if (matchingVoice) {
+      utterance.voice = matchingVoice;
     }
     window.speechSynthesis.speak(utterance);
   }
@@ -42,5 +43,11 @@ export function speakText(text, langCode = "hi-IN") {
       window.speechSynthesis.onvoiceschanged = null; // prevent repeated firing
       assignVoiceAndSpeak();
     };
+  }
+}
+
+export function stopSpeaking() {
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
   }
 }

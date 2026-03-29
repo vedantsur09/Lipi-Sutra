@@ -4,6 +4,7 @@ import {
   query, orderBy, limit, getDocs, setDoc, doc, getDoc, updateDoc, increment
 } from "firebase/firestore";
 import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -17,6 +18,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+export const auth = getAuth(app);
+
+export async function loginUser(email, password) {
+  return signInWithEmailAndPassword(auth, email, password);
+}
 
 export async function checkExistingHash(hash) {
   console.log('>>> [CACHE_CHECK] checkExistingHash Initiated for hash:', hash);
